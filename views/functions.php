@@ -33,10 +33,9 @@
     function listUsers() {
         $ldap = connect();
         $filter = "objectClass=user";
-        $search = ldap_search($ldap, "CN=Users,DC=deneme,DC=lab", $filter);
-        $entries = ldap_get_entries($ldap,$search);
-
-        $count = ldap_count_entries($ldap, $search);
+        $result = ldap_search($ldap, "CN=Users,DC=deneme,DC=lab", $filter);
+        $entries = ldap_get_entries($ldap, $result);
+        $count = ldap_count_entries($ldap, $result);
         $data = [];
         for($i=0 ; $i<$count ; $i++){
             $nameItem = $entries[$i]["name"][0];
@@ -45,17 +44,70 @@
             ];
         }
         ldap_close($ldap);
-        return $data;
-    }
-
-    function showListedUsers(){
-        $data = [];
-        $data = listUsers();
         return view('table', [
             "value" => $data,
             "title" => ["Users"],
             "display" => ["name"],
-        ]); 
+            "menu" => [
+                "Delete User" => [
+                    "target" => "deleteUser",
+                    "icon" => "fa-trash"
+                ],
+
+                "Edit User" =>[
+                    "target" => "showEditNameModal",
+                    "icon" => "fa-edit"
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Right Click Delete User Function on List User Tab
+     */
+
+    function deleteUser() {
+        $ldap = connect();
+        $cn = request('userName');
+        $dn_user="CN=".$cn;
+        $dn = $dn_user . ",CN=Users,DC=deneme,DC=lab";
+        if(ldap_delete($ldap, $dn)) {
+            ldap_close($ldap);
+            return respond("User is successfully deleted!");
+        }
+        else {
+            ldap_close($ldap);
+            return respond("ERROR! User cannot be deleted!");
+        }
+    }
+
+    function editUser() {
+        $ldap = connect();
+        $cn = request('userName');
+        $dn_user = "CN=".$cn;
+        $newUsrName = request('newUsrName');
+        
+    }
+
+    function addUser() {
+        $ldap = connect();
+        $cn = request('userName');
+        $dn_user = "CN=".$cn;
+        $dn = $dn_user . ",CN=Users,DC=deneme,DC=lab";
+        
+        $entry["objectclass"][0] = "top";
+        $entry["objectclass"][1] = "person";
+        $entry["objectclass"][2] = "organizationalPerson";
+        $entry["objectclass"][3] = "user"; 
+        
+        if(ldap_add($ldap, $dn, $entry)) {
+            ldap_close($ldap);
+            return respond("User is successfully added!");
+        }
+        else {
+            ldap_close($ldap);
+            return respond("ERROR! User cannot be added!");
+        }
     }
 
     /**
@@ -65,10 +117,10 @@
      function listComputers(){
         $ldap = connect();
         $filter = "objectClass=computer";
-        $search = ldap_search($ldap, "CN=Users,DC=deneme,DC=lab", $filter);
-        $entries = ldap_get_entries($ldap,$search);
+        $result = ldap_search($ldap, "CN=Users,DC=deneme,DC=lab", $filter);
+        $entries = ldap_get_entries($ldap,$result);
 
-        $count = ldap_count_entries($ldap, $search);
+        $count = ldap_count_entries($ldap, $result);
         $data = [];
         for($i=0 ; $i<$count ; $i++){
             $nameItem = $entries[$i]["name"][0];
@@ -77,18 +129,12 @@
             ];
         }
         ldap_close($ldap);
-        return $data;
-     }
-
-     function showListedComputers(){
-        $data = [];
-        $data = listComputers();
         return view('table', [
             "value" => $data,
             "title" => ["PCs"],
             "display" => ["name"],
-        ]); 
-    }
+        ]);
+     }
 
     /**
      * ---Admin Attributes--- Tab
@@ -99,10 +145,44 @@
         $cn="administrator";
         $dn_user="CN=".$cn;
 
-        $search = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user);
-        $entries = ldap_get_entries($ldap,$search);
 
+        /*
+        print_r($attributes);
+        
+        $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user);
+        
+        if(isset($attributes)) {
+//            print_r($attributes);
+            $attributesArray = explode(",", $attributes);
+ //           print_r($attributesArray);
+            $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user, $attributesArray);
+        }
+        else{
+//            print_r("set edilmedi");
+            $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user);
+        }
+        */
+        /*
+        if (str_contains(strval($attributes), ',')) {
+            $attributesArray = explode(",", $attributes);
+            $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user, $attributesArray);
+        }
+        else{
+            if(strlen($attributes) != 0) {
+                $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user, $attributes);
+            }  
+            else {
+                $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user);
+            }
+        }
+        */
+//        $attributesArray = explode(",", $attributes);
+//        $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user, $attributesArray);
+        
+        $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user);
+        $entries = ldap_get_entries($ldap,$result);
         $data=[];
+
         for($i=0 ; $i<$entries[0]["count"] ; $i++){
             $name = $entries[0][$i];
             for($j=0 ; $j<$entries[0][$name]["count"] ; $j++){
@@ -113,18 +193,26 @@
                 ];
             }
         }
-        ldap_close($ldap);
-        return $data;
-     }
 
-     function showListedAdminAttributes(){
-        $data = [];
-        $data = listAdminAttributes();
+        ldap_close($ldap);
         return view('table', [
             "value" => $data,
             "title" => ["Attribute Name", "Attribute Value"],
             "display" => ["name", "value"],
-        ]); 
+        ]);
+     }
+
+     function showListedAdminAttributes(){
+        $data = [];
+
+        $attributes = request('attributes');
+        $data = listAdminAttributes($attributes);
+
+        return view('table', [
+            "value" => $data,
+            "title" => ["Attribute Name", "Attribute Value"],
+            "display" => ["name", "value"],
+        ]);
     }
 
 ?>

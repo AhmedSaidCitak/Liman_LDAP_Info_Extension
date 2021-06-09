@@ -1,5 +1,53 @@
 <h1>{{ __('LDAP Information') }}</h1>
 
+@component('modal-component',[
+    "id" => "LdapAttrChooseModal",
+    "title" => "Choosing LDAP Attributes",
+    "footer" => [
+        "text" => "List",
+        "class" => "btn-success",
+        "onclick" => "chooseAttributeOnModal()"
+    ]
+])
+@include('inputs', [
+    "inputs" => [
+        "Write the attribute name(s) that you would like to list" => "attrName:text:name,samaccountname"
+    ]
+])
+@endcomponent
+
+@component('modal-component',[
+    "id" => "EditNameModal",
+    "title" => "Edit Name",
+    "footer" => [
+        "text" => "Edit",
+        "class" => "btn-success",
+        "onclick" => "editUser()"
+    ]
+])
+@include('inputs', [
+    "inputs" => [
+        "Write New User Name" => "usrName:text"
+    ]
+])
+@endcomponent
+
+@component('modal-component',[
+    "id" => "AddUserNameModal",
+    "title" => "Add User Name",
+    "footer" => [
+        "text" => "Add",
+        "class" => "btn-success",
+        "onclick" => "addUser()"
+    ]
+])
+@include('inputs', [
+    "inputs" => [
+        "User Name" => "usrName:text"
+    ]
+])
+@endcomponent
+
 <ul class="nav nav-tabs" role="tablist" style="margin-bottom: 15px;">
     <li class="nav-item">
         <a class="nav-link active"  onclick="ListUsersTab()" href="#tab1" data-toggle="tab">List Users</a>
@@ -14,6 +62,9 @@
 
 <div class="tab-content">
     <div id="tab1" class="tab-pane active">
+        <div id="chooseAttrButton" class="tab-pane">
+            <button class="btn btn-success mb-2" id="ldapUsrAddButton" onclick="showLdapUsrAddModal()" type="button">Add User</button>
+        </div>
         <div class="table-responsive ldapTable" id="ldapUserTable"></div> 
     </div>
 
@@ -22,6 +73,9 @@
     </div>
 
     <div id="tab3" class="tab-pane">
+        <div id="chooseAttrButton" class="tab-pane">
+            <button class="btn btn-success mb-2" id="ldapAttrButton" onclick="showLdapAttrChooseModal()" type="button">Choose Attributes</button>
+        </div>
         <div class="table-responsive ldapTable" id="ldapAdminAttrTable"></div> 
     </div>
 </div>
@@ -30,7 +84,7 @@
     
     function ListUsersTab() {
         var form = new FormData();
-        request(API('showListedUsers'), form, function(response) {
+        request(API('listUsers'), form, function(response) {
             $('#ldapUserTable').html(response).find('table').DataTable({
             bFilter: true,
             "language" : {
@@ -43,9 +97,69 @@
         });
     }
 
+    // Right Click Function of Users Table
+
+    function deleteUser(line) {
+        showSwal('{{__("Yükleniyor...")}}','info',2000);
+        var form = new FormData();
+        let name = line.querySelector("#name").innerHTML;
+        form.append("userName", name);
+
+        request(API('deleteUser'), form, function(response) {
+            message = JSON.parse(response)["message"];
+            showSwal(message, 'success', 3000);
+            ListUsersTab();
+        }, function(response) {
+            let error = JSON.parse(response);
+            showSwal(error.message, 'error', 3000);
+        });
+    }
+
+    function showLdapUsrAddModal() {
+        $('#AddUserNameModal').modal("show");
+    }
+
+    function addUser(line) {
+        $('#AddUserNameModal').modal("hide");
+        showSwal('{{__("Yükleniyor...")}}','info',2000);
+        var form = new FormData();
+        let usrName = $('#AddUserNameModal').find('select[name=usrName]').val();
+        form.append("usrName", usrName);
+
+        request(API('addUser'), form, function(response) {
+            message = JSON.parse(response)["message"];
+            showSwal(message, 'success', 3000);
+        }, function(response) {
+            let error = JSON.parse(response);
+            showSwal(error.message, 'error', 3000);
+        });
+    }
+
+    function showEditNameModal() {
+        $('#EditNameModal').modal("show");
+    }
+
+    function editUser(line) {
+        $('#EditNameModal').modal("hide");
+        showSwal('{{__("Yükleniyor...")}}','info',2000);
+        var form = new FormData();
+        let userName = line.querySelector("#name").innerHTML;
+        let newUsrName = $('#EditNameModal').find('select[name=usrName]').val();
+        form.append("userName", userName);
+        form.append("newUsrName", newUsrName);
+
+        request(API('editUser'), form, function(response) {
+            message = JSON.parse(response)["message"];
+            showSwal(message, 'success', 3000);
+        }, function(response) {
+            let error = JSON.parse(response);
+            showSwal(error.message, 'error', 3000);
+        });
+    }
+
     function ListPCsTab() {
         var form = new FormData();
-        request(API('showListedComputers'), form, function(response) {
+        request(API('listComputers'), form, function(response) {
             $('#ldapPCTable').html(response).find('table').DataTable({
             bFilter: true,
             "language" : {
@@ -60,6 +174,28 @@
 
     function AdminAttrTab() {
         var form = new FormData();
+        request(API('listAdminAttributes'), form, function(response) {
+            $('#ldapAdminAttrTable').html(response).find('table').DataTable({
+            bFilter: true,
+            "language" : {
+                url : "/turkce.json"
+            }
+            });;
+        }, function(response) {
+            let error = JSON.parse(response);
+            showSwal(error.message, 'error', 3000);
+        });
+    }
+
+    function showLdapAttrChooseModal() {
+        $('#LdapAttrChooseModal').modal("show");
+    }
+
+    function chooseAttributeOnModal() {
+        showSwal('{{__("Yükleniyor...")}}','info',2000);
+        var form = new FormData();
+        let attributes = $('#LdapAttrChooseModal').find('select[name=attrName]').val();
+        form.append("attributes", attributes);
         request(API('showListedAdminAttributes'), form, function(response) {
             $('#ldapAdminAttrTable').html(response).find('table').DataTable({
             bFilter: true,
