@@ -1,5 +1,5 @@
 # Liman_LDAP_Info
-LDAP extention for Liman-MYS to monitor some properties and features
+LDAP extension for Liman-MYS to monitor some properties and features
 
 - List Users
 - List Computers
