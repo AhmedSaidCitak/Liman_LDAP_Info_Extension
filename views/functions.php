@@ -66,9 +66,11 @@
      * Right Click Delete User Function on List User Tab
      */
 
+     // --DELETE USER--
+
     function deleteUser() {
         $ldap = connect();
-        $cn = request('userName');
+        $cn = request('userNameToBeDeleted');
         $dn_user="CN=".$cn;
         $dn = $dn_user . ",CN=Users,DC=deneme,DC=lab";
         if(ldap_delete($ldap, $dn)) {
@@ -81,13 +83,7 @@
         }
     }
 
-    function editUser() {
-        $ldap = connect();
-        $cn = request('userName');
-        $dn_user = "CN=".$cn;
-        $newUsrName = request('newUsrName');
-        
-    }
+    // --ADD USER--
 
     function addUser() {
         $ldap = connect();
@@ -99,6 +95,10 @@
         $entry["objectclass"][1] = "person";
         $entry["objectclass"][2] = "organizationalPerson";
         $entry["objectclass"][3] = "user"; 
+        $entry["cn"] = $cn;
+        $entry["name"] = $cn;
+        $entry["samaccountname"] = $cn;
+        
         
         if(ldap_add($ldap, $dn, $entry)) {
             ldap_close($ldap);
@@ -107,6 +107,26 @@
         else {
             ldap_close($ldap);
             return respond("ERROR! User cannot be added!");
+        }
+    }
+
+    // --EDIT USER--
+
+    function editUser() {
+        $ldap = connect();
+        $cn = request('userName');
+        $dn_user = "CN=".$cn;
+        $dn = $dn_user . ",CN=Users,DC=deneme,DC=lab";
+        $newUsrName = request('newUsrName');
+        $entry["displayName"] = array($newUsrName);
+        
+        if(ldap_mod_replace($ldap, $dn, $entry)) {
+            ldap_close($ldap);
+            return respond("User is successfully edited!");
+        }
+        else {
+            ldap_close($ldap);
+            return respond("ERROR! User cannot be edited!");
         }
     }
 
@@ -144,42 +164,23 @@
         $ldap = connect();
         $cn="administrator";
         $dn_user="CN=".$cn;
-
-
-        /*
-        print_r($attributes);
+        $attributesInput = request('attributes');
         
-        $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user);
-        
-        if(isset($attributes)) {
-//            print_r($attributes);
-            $attributesArray = explode(",", $attributes);
- //           print_r($attributesArray);
-            $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user, $attributesArray);
-        }
-        else{
-//            print_r("set edilmedi");
-            $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user);
-        }
-        */
-        /*
-        if (str_contains(strval($attributes), ',')) {
-            $attributesArray = explode(",", $attributes);
-            $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user, $attributesArray);
-        }
-        else{
-            if(strlen($attributes) != 0) {
-                $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user, $attributes);
-            }  
-            else {
+        if(isset($attributesInput)) {
+
+            if(empty($attributesInput)) {
                 $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user);
             }
+            else {
+                $attributesArray = explode(",", $attributesInput);
+                $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user, $attributesArray);    
+            }
+
         }
-        */
-//        $attributesArray = explode(",", $attributes);
-//        $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user, $attributesArray);
+        else{
+            $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user);
+        }
         
-        $result = ldap_search($ldap, "DC=deneme,DC=lab", $dn_user);
         $entries = ldap_get_entries($ldap,$result);
         $data=[];
 
@@ -201,18 +202,4 @@
             "display" => ["name", "value"],
         ]);
      }
-
-     function showListedAdminAttributes(){
-        $data = [];
-
-        $attributes = request('attributes');
-        $data = listAdminAttributes($attributes);
-
-        return view('table', [
-            "value" => $data,
-            "title" => ["Attribute Name", "Attribute Value"],
-            "display" => ["name", "value"],
-        ]);
-    }
-
 ?>

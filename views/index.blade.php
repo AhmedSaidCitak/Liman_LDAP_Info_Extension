@@ -81,6 +81,8 @@
 </div>
 
 <script>
+
+    var globeUserName;
     
     function ListUsersTab() {
         var form = new FormData();
@@ -97,13 +99,14 @@
         });
     }
 
-    // Right Click Function of Users Table
+    // ***Right Click Function of Users Table***
+    // --DELETE USER--
 
     function deleteUser(line) {
         showSwal('{{__("Yükleniyor...")}}','info',2000);
         var form = new FormData();
         let name = line.querySelector("#name").innerHTML;
-        form.append("userName", name);
+        form.append("userNameToBeDeleted", name);
 
         request(API('deleteUser'), form, function(response) {
             message = JSON.parse(response)["message"];
@@ -113,41 +116,49 @@
             let error = JSON.parse(response);
             showSwal(error.message, 'error', 3000);
         });
+        
     }
+
+    // --ADD USER--
 
     function showLdapUsrAddModal() {
         $('#AddUserNameModal').modal("show");
     }
 
-    function addUser(line) {
+    function addUser() {
         $('#AddUserNameModal').modal("hide");
         showSwal('{{__("Yükleniyor...")}}','info',2000);
         var form = new FormData();
-        let usrName = $('#AddUserNameModal').find('select[name=usrName]').val();
-        form.append("usrName", usrName);
+        let userName = $('#AddUserNameModal').find('input[name=usrName]').val();
+        form.append("userName", userName);
 
         request(API('addUser'), form, function(response) {
             message = JSON.parse(response)["message"];
             showSwal(message, 'success', 3000);
+            ListUsersTab();
         }, function(response) {
             let error = JSON.parse(response);
             showSwal(error.message, 'error', 3000);
         });
     }
 
-    function showEditNameModal() {
+    // --EDIT USER--
+
+    function showEditNameModal(line) {
         $('#EditNameModal').modal("show");
+        globeUserName = line.querySelector("#name").innerHTML;
+        
     }
 
     function editUser(line) {
         $('#EditNameModal').modal("hide");
         showSwal('{{__("Yükleniyor...")}}','info',2000);
         var form = new FormData();
-        let userName = line.querySelector("#name").innerHTML;
-        let newUsrName = $('#EditNameModal').find('select[name=usrName]').val();
-        form.append("userName", userName);
+        
+        let newUsrName = $('#EditNameModal').find('input[name=usrName]').val();
+        form.append("userName", globeUserName);
         form.append("newUsrName", newUsrName);
-
+        
         request(API('editUser'), form, function(response) {
             message = JSON.parse(response)["message"];
             showSwal(message, 'success', 3000);
@@ -155,6 +166,7 @@
             let error = JSON.parse(response);
             showSwal(error.message, 'error', 3000);
         });
+        
     }
 
     function ListPCsTab() {
@@ -194,9 +206,9 @@
     function chooseAttributeOnModal() {
         showSwal('{{__("Yükleniyor...")}}','info',2000);
         var form = new FormData();
-        let attributes = $('#LdapAttrChooseModal').find('select[name=attrName]').val();
+        let attributes = $('#LdapAttrChooseModal').find('input[name=attrName]').val();
         form.append("attributes", attributes);
-        request(API('showListedAdminAttributes'), form, function(response) {
+        request(API('listAdminAttributes'), form, function(response) {
             $('#ldapAdminAttrTable').html(response).find('table').DataTable({
             bFilter: true,
             "language" : {
