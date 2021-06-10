@@ -4,6 +4,9 @@ LDAP extention for Liman-MYS to monitor some properties and features
 - List Users
 - List Computers
 - List Admin Attributes
+  > All Admin Attributes
+  
+  > Selected Admin Attributes
 - Delete User
 - Add User
 - Edit User Attributes
