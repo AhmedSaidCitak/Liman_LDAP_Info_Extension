@@ -5,13 +5,13 @@
      */
 
     function connect() {
-        $domainname= "deneme.lab";
+        $domainname = extensionDb("domainName");
         $user = "administrator@".$domainname;
-        $pass = "123123Aa";
+        $pass = extensionDb("domainPassword");
         $server = 'ldaps://192.168.1.69';
-        $port="636";
-        $binddn = "DC=deneme,DC=lab";
-        $searchbase = "DC=deneme,DC=lab";
+        $port = extensionDb("port");
+        $binddn = extensionDb("bindDN");
+        $searchbase = extensionDb("bindDN");
 
         $ldap = ldap_connect($server);
         ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);

@@ -2,8 +2,33 @@
     "name": "LDAP",
     "publisher": "Administrator",
     "version": "0.0.1",
-    "version_code": 1,
-    "database": [],
+    "version_code": 7,
+    "database": [
+        {
+            "variable": "domainName",
+            "type": "text",
+            "name": "Etki Alan\u0131 ad\u0131 (\u00d6rne\u011fin: staj.lab)",
+            "required": true
+        },
+        {
+            "variable": "domainPassword",
+            "type": "password",
+            "name": "Etki Alan\u0131 Parolas\u0131 (En az 8 karakteden olu\u015fup rakam, bir b\u00fcy\u00fck ve bir k\u00fc\u00e7\u00fck harf i\u00e7ermelidir)",
+            "required": true
+        },
+        {
+            "variable": "bindDN",
+            "type": "text",
+            "name": "Bind Domain Name (DC=staj,DC=lab)",
+            "required": true
+        },
+        {
+            "variable": "port",
+            "type": "text",
+            "name": "Port (Aktif dizin i\u00e7in: 389, Samba i\u00e7in: 636 portu tavsiye edilir)",
+            "required": true
+        }
+    ],
     "widgets": [],
     "language": "php",
     "status": 0,
