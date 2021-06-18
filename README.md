@@ -11,4 +11,4 @@ LDAP extension for Liman-MYS to monitor some properties and features
 - Add User
 - Edit User Attributes
 
-Ahmed Said Çıtak - Intern at HAVELSAN 
+Ahmed Said Çıtak - Intern at HAVELSAN - June 2021
